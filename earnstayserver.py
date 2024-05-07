@@ -1,21 +1,17 @@
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 import requests
-import re
 
 app = Flask(__name__)
-PORT = 3000
+CORS(app)
 
 @app.route('/resolveShortenedUrl')
 def resolve_shortened_url():
     try:
         url = request.args.get('url')
-        response = requests.get(url, allow_redirects=True)
+        response = requests.get(url, allow_redirects=True, max_redirects=5)
         resolved_url = response.url
-        match = re.search(r'dp/([^?]+)', resolved_url)
-        if match and match.group(1):
-            asin = match.group(1)
-        else:
-            raise ValueError('ASIN not found in the resolved URL')
+        asin = resolved_url.split('/dp/')[1].split('?')[0]
 
         # Set up the request parameters for the new API
         params = {
@@ -34,9 +30,10 @@ def resolve_shortened_url():
         
         # Return the data to the client
         return jsonify(api_response.json())
-    except Exception as error:
-        print('Error:', error)
+
+    except Exception as e:
+        print('Error:', e)
         return jsonify({'error': 'Internal server error'}), 500
 
 if __name__ == '__main__':
-    app.run(port=PORT)
+    app.run(port=3000)
