@@ -36,7 +36,7 @@ app.get('/resolveShortenedUrl', async (req, res) => {
     const apiResponse = await axios.get('https://api.asindataapi.com/request', { params });
 
     // Return the data to the client
-    res.json(apiResponse.data);
+    res.json(apiResponse.data.product.brand);
   } catch (error) {
     console.error('Error:', error);
     
