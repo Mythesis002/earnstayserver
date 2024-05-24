@@ -1,21 +1,16 @@
 const express = require('express');
 const axios = require('axios');
-const cors = require('cors'); // Import cors module
+const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
-// Enable CORS for all routes
 app.use(cors());
 
 app.get('/resolveShortenedUrl', async (req, res) => {
   try {
     const { url } = req.query;
-
-    // Make a request to the shortened URL to resolve it
     const response = await axios.get(url, { maxRedirects: 5 });
     const resolvedUrl = response.request.res.responseUrl;
-    
-    // Extract the ASIN from the resolved URL
     const regex = /dp\/([^?]+)/;
     const match = resolvedUrl.match(regex);
     let asin;
@@ -25,19 +20,26 @@ app.get('/resolveShortenedUrl', async (req, res) => {
       throw new Error('ASIN not found in the resolved URL');
     }
 
-    // Make a request to the external API
-    const apiResponse = await axios.get(`https://real-time-amazon-data.p.rapidapi.com/product-details?asin=${asin}&country=IN`, {
-      headers: {
-        'X-RapidAPI-Key': 'c66b66fd5fmsh2d1f2d4c5d0a073p17161ajsnb75f8dbbac1d',
-        'X-RapidAPI-Host': 'real-time-amazon-data.p.rapidapi.com'
-       }
-    });
+    // Set up the request parameters for the new API
+    const params = {
+      api_key: "96473062B0A24D2CB0F2E9FB5086749B",
+      amazon_domain: "amazon.in",
+      asin,
+      type: "product",
+      include_html: "false",
+      include_summarization_attributes: "false",
+      language: "en_US",
+      output: "json"
+    };
+
+    // Make a request to the new API
+    const apiResponse = await axios.get('https://api.asindataapi.com/request', { params });
 
     // Return the data to the client
-    res.json(apiResponse.data.data.product_details.Brand);
+    res.json(apiResponse.data.product.brand);
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    
   }
 });
 
