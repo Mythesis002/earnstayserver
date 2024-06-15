@@ -4,7 +4,8 @@
   "description": "Your server application description",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "postinstall": "npx puppeteer browsers install chrome@125.0.6422.141"
   },
   "dependencies": {
     "axios": "^0.21.1",
