@@ -4,13 +4,12 @@
   "description": "Your server application description",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "postinstall": "npx puppeteer install"
+    "start": "node src/server.js"
   },
   "dependencies": {
     "axios": "^0.21.1",
     "cors": "^2.8.5",
-    "puppeteer": "^22.10.1",
+    "puppeteer-core": "^10.4.0",  // Add puppeteer-core instead of puppeteer
     "express": "^4.18.3"
   }
 }
