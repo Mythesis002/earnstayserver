@@ -48,15 +48,15 @@ app.get('/resolveShortenedUrl', async (req, res) => {
 });
 
 async function resolveFlipkartUrl(shortenedUrl) {
-  // Ensure Puppeteer uses the installed Chrome version
   const browser = await puppeteer.launch({
-    executablePath: puppeteer.executablePath() // Use the correct Chrome executable
+    executablePath: puppeteer.executablePath(), // Use the correct Chrome executable
+    headless: true
   });
   const page = await browser.newPage();
 
   try {
     // Navigate to the shortened URL
-    await page.goto(shortenedUrl);
+    await page.goto(shortenedUrl, { waitUntil: 'networkidle2' });
 
     // Extract the final URL after all redirects
     const finalUrl = page.url();
