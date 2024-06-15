@@ -48,7 +48,10 @@ app.get('/resolveShortenedUrl', async (req, res) => {
 });
 
 async function resolveFlipkartUrl(shortenedUrl) {
-  const browser = await puppeteer.launch();
+  // Ensure Puppeteer uses the installed Chrome version
+  const browser = await puppeteer.launch({
+    executablePath: puppeteer.executablePath() // Use the correct Chrome executable
+  });
   const page = await browser.newPage();
 
   try {
