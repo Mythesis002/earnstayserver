@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "postinstall": "npx puppeteer browsers chrome"
+    "postinstall": "npx puppeteer install"
   },
   "dependencies": {
     "axios": "^0.21.1",
