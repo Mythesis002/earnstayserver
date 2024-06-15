@@ -2,13 +2,10 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const dns = require('dns');
-const puppeteer = require('puppeteer-core'); // Use puppeteer-core
+const puppeteer = require('puppeteer');
 
 const app = express();
 const PORT = 10000;
-
-// Path to the Chrome executable
-const CHROME_PATH = '/path/to/chrome';  // Specify the path to the Chrome executable
 
 // Enable CORS for all routes
 app.use(cors());
@@ -52,8 +49,8 @@ app.get('/resolveShortenedUrl', async (req, res) => {
 
 async function resolveFlipkartUrl(shortenedUrl) {
   const browser = await puppeteer.launch({
-    executablePath: CHROME_PATH, // Use the correct Chrome executable path
-    headless: true
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
   const page = await browser.newPage();
 
@@ -78,7 +75,7 @@ function extractBrandName(url) {
   const match = url.match(regex);
   if (match) {
     const brandPart = match[1].split('-')[0];  // Split by '-' and take the first part
-    console.log(brandPart)
+    console.log(brandPart);
     return brandPart;
   }
   return null;
@@ -118,7 +115,7 @@ async function resolveAmazonUrl(url) {
     } else {
       throw new Error('Brand not found in the response');
     }
-    console.log(brand)
+    console.log(brand);
     return { brand };
   } catch (error) {
     console.error('Error fetching product details:', error.message);
