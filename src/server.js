@@ -2,10 +2,13 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const dns = require('dns');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core'); // Use puppeteer-core
 
 const app = express();
 const PORT = 10000;
+
+// Path to the Chrome executable
+const CHROME_PATH = '/path/to/chrome';  // Specify the path to the Chrome executable
 
 // Enable CORS for all routes
 app.use(cors());
@@ -49,7 +52,7 @@ app.get('/resolveShortenedUrl', async (req, res) => {
 
 async function resolveFlipkartUrl(shortenedUrl) {
   const browser = await puppeteer.launch({
-    executablePath: puppeteer.executablePath(), // Use the correct Chrome executable
+    executablePath: CHROME_PATH, // Use the correct Chrome executable path
     headless: true
   });
   const page = await browser.newPage();
