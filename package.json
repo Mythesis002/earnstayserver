@@ -4,8 +4,8 @@
   "description": "Your server application description",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "install": "node install-chromium.js" 
+  "start": "node src/server.js",
+  "install": "npm install --legacy-peer-deps && node install-chromium.js"  
   },
   "dependencies": {
     "axios": "^0.21.1",
