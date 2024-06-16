@@ -34,7 +34,7 @@ app.get('/resolveShortenedUrl', async (req, res) => {
         } else {
           resolvedData = await resolveAmazonUrl(url);
         }
-        
+
         res.json(resolvedData);
       } catch (err) {
         console.error('Error:', err.message);
