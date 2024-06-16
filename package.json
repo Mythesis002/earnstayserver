@@ -4,7 +4,8 @@
   "description": "Your server application description",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "install-chromium": "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=false npx puppeteer install"
   },
   "dependencies": {
     "axios": "^0.21.1",
