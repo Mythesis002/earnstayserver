@@ -5,13 +5,13 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "install": "node install-chromium.js"  // Add this script to install Chromium
+    "install": "node install-chromium.js"  
   },
   "dependencies": {
     "axios": "^0.21.1",
     "cors": "^2.8.5",
-    "puppeteer-core": "^22.10.1",  // Use puppeteer-core
+    "puppeteer-core": "^22.10.1",  
     "express": "^4.18.3",
-    "chrome-aws-lambda": "^10.1.0"  // Add this package for Chromium binary
+    "chrome-aws-lambda": "^10.1.0" 
   }
 }
