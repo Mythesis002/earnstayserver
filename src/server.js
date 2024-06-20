@@ -2,10 +2,11 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const dns = require('dns');
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
+const chromium = require('chrome-aws-lambda');
 
 const app = express();
-const PORT = 10000;
+const PORT = process.env.PORT || 10000;  // Use process.env.PORT for compatibility with Render
 
 // Enable CORS for all routes
 app.use(cors());
@@ -48,12 +49,16 @@ app.get('/resolveShortenedUrl', async (req, res) => {
 });
 
 async function resolveFlipkartUrl(shortenedUrl) {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath,
+    headless: chromium.headless,
+  });
   const page = await browser.newPage();
 
   try {
     // Navigate to the shortened URL
-    await page.goto(shortenedUrl);
+    await page.goto(shortenedUrl, { waitUntil: 'networkidle0' });
 
     // Extract the final URL after all redirects
     const finalUrl = page.url();
@@ -72,7 +77,7 @@ function extractBrandName(url) {
   const match = url.match(regex);
   if (match) {
     const brandPart = match[1].split('-')[0];  // Split by '-' and take the first part
-    console.log(brandPart)
+    console.log(brandPart);
     return brandPart;
   }
   return null;
@@ -96,7 +101,7 @@ async function resolveAmazonUrl(url) {
     // Make a request to the external API
     const apiResponse = await axios.get(`https://real-time-amazon-data.p.rapidapi.com/product-details?asin=${asin}&country=IN`, {
       headers: {
-        'X-RapidAPI-Key': 'bc4551ab84msh6733c61fc21c591p1d72c2jsnad99d9c3dd43',
+        'X-RapidAPI-Key': 'your-rapidapi-key',  // Replace with your actual RapidAPI key
         'X-RapidAPI-Host': 'real-time-amazon-data.p.rapidapi.com'
       }
     });
@@ -112,7 +117,7 @@ async function resolveAmazonUrl(url) {
     } else {
       throw new Error('Brand not found in the response');
     }
-    console.log(brand)
+    console.log(brand);
     return { brand };
   } catch (error) {
     console.error('Error fetching product details:', error.message);
