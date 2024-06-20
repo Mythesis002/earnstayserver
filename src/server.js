@@ -6,7 +6,7 @@ const puppeteer = require('puppeteer-core');
 const chromium = require('chrome-aws-lambda');
 
 const app = express();
-const PORT = process.env.PORT || 10000;  // Use process.env.PORT for compatibility with Render
+const PORT = 10000;
 
 // Enable CORS for all routes
 app.use(cors());
