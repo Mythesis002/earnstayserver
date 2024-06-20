@@ -2,12 +2,15 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const dns = require('dns');
+const puppeteer = require('puppeteer');
+
 const app = express();
 const PORT = 10000;
 
 // Enable CORS for all routes
 app.use(cors());
 
+// Endpoint for resolving URLs
 app.get('/resolveShortenedUrl', async (req, res) => {
   try {
     const { url } = req.query;
@@ -15,7 +18,7 @@ app.get('/resolveShortenedUrl', async (req, res) => {
     if (!url) {
       return res.status(400).json({ error: 'URL parameter is required' });
     }
-    c
+
     // Check DNS resolution
     dns.lookup(new URL(url).hostname, async (dnsErr) => {
       if (dnsErr) {
@@ -23,9 +26,15 @@ app.get('/resolveShortenedUrl', async (req, res) => {
         return res.status(500).json({ error: 'Failed to resolve domain name' });
       }
 
-      // Proceed with URL resolution
+      // Resolve URL based on domain
       try {
-        const resolvedData = await resolveShortenedUrl(url);
+        let resolvedData;
+        if (url.includes('flipkart.com')) {
+          resolvedData = await resolveFlipkartUrl(url);
+        } else {
+          resolvedData = await resolveAmazonUrl(url);
+        }
+        
         res.json(resolvedData);
       } catch (err) {
         console.error('Error:', err.message);
@@ -38,7 +47,38 @@ app.get('/resolveShortenedUrl', async (req, res) => {
   }
 });
 
-async function resolveShortenedUrl(url) {
+async function resolveFlipkartUrl(shortenedUrl) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  try {
+    // Navigate to the shortened URL
+    await page.goto(shortenedUrl);
+
+    // Extract the final URL after all redirects
+    const finalUrl = page.url();
+
+    // Extract brand name
+    const brandName = extractBrandName(finalUrl);
+
+    return { brandName };
+  } finally {
+    await browser.close();
+  }
+}
+
+function extractBrandName(url) {
+  const regex = /https:\/\/www\.flipkart\.com\/([^\/]+)/;
+  const match = url.match(regex);
+  if (match) {
+    const brandPart = match[1].split('-')[0];  // Split by '-' and take the first part
+    console.log(brandPart)
+    return brandPart;
+  }
+  return null;
+}
+
+async function resolveAmazonUrl(url) {
   try {
     const response = await axios.get(url, { maxRedirects: 5 });
     const resolvedUrl = response.request.res.responseUrl;
@@ -52,7 +92,7 @@ async function resolveShortenedUrl(url) {
     } else {
       throw new Error('ASIN not found in the resolved URL');
     }
-    
+
     // Make a request to the external API
     const apiResponse = await axios.get(`https://real-time-amazon-data.p.rapidapi.com/product-details?asin=${asin}&country=IN`, {
       headers: {
@@ -72,8 +112,8 @@ async function resolveShortenedUrl(url) {
     } else {
       throw new Error('Brand not found in the response');
     }
-
-    return brand;
+    console.log(brand)
+    return { brand };
   } catch (error) {
     console.error('Error fetching product details:', error.message);
     throw error;
