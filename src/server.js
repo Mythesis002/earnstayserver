@@ -51,7 +51,6 @@ app.get('/resolveShortenedUrl', async (req, res) => {
 async function resolveFlipkartUrl(shortenedUrl) {
   const browser = await puppeteer.launch({
     args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
     executablePath: await chromium.executablePath,
     headless: chromium.headless,
   });
@@ -102,7 +101,7 @@ async function resolveAmazonUrl(url) {
     // Make a request to the external API
     const apiResponse = await axios.get(`https://real-time-amazon-data.p.rapidapi.com/product-details?asin=${asin}&country=IN`, {
       headers: {
-        'X-RapidAPI-Key': 'bc4551ab84msh6733c61fc21c591p1d72c2jsnad99d9c3dd43',
+        'X-RapidAPI-Key': 'your-rapidapi-key',
         'X-RapidAPI-Host': 'real-time-amazon-data.p.rapidapi.com'
       }
     });
