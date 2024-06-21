@@ -2,40 +2,34 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const dns = require('dns');
-const puppeteer = require('puppeteer');
-const chromium = require('chrome-aws-lambda');
-
 const app = express();
-const PORT = process.env.PORT || 10000;  // Use process.env.PORT for compatibility with Render
-
+const PORT = 10000;
 // Enable CORS for all routes
 app.use(cors());
-
-// Endpoint for resolving URLs
 app.get('/resolveShortenedUrl', async (req, res) => {
   try {
     const { url } = req.query;
-
     if (!url) {
       return res.status(400).json({ error: 'URL parameter is required' });
     }
 
     // Check DNS resolution
+    dns.lookup(new URL(url).hostname, (dnsErr) => {
     dns.lookup(new URL(url).hostname, async (dnsErr) => {
       if (dnsErr) {
         console.error('DNS resolution error:', dnsErr.message);
         return res.status(500).json({ error: 'Failed to resolve domain name' });
       }
 
-      // Resolve URL based on domain
+      // Proceed with URL resolution
+      resolveShortenedUrl(url)
+        .then(resolvedData => res.json(resolvedData))
+        .catch(err => {
+          console.error('Error:', err.message);
+          res.status(500).json({ error: 'Internal server error' });
+        });
       try {
-        let resolvedData;
-        if (url.includes('flipkart.com')) {
-          resolvedData = await resolveFlipkartUrl(url);
-        } else {
-          resolvedData = await resolveAmazonUrl(url);
-        }
-        
+        const resolvedData = await resolveShortenedUrl(url);
         res.json(resolvedData);
       } catch (err) {
         console.error('Error:', err.message);
@@ -44,68 +38,22 @@ app.get('/resolveShortenedUrl', async (req, res) => {
     });
   } catch (error) {
     console.error('Unexpected error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-async function resolveFlipkartUrl(shortenedUrl) {
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath,
-    headless: chromium.headless,
-  });
-  const page = await browser.newPage();
-
-  try {
-    // Navigate to the shortened URL
-    await page.goto(shortenedUrl, { waitUntil: 'networkidle0' });
-
-    // Extract the final URL after all redirects
-    const finalUrl = page.url();
-
-    // Extract brand name
-    const brandName = extractBrandName(finalUrl);
-
-    return { brandName };
-  } finally {
-    await browser.close();
-  }
-}
-
-function extractBrandName(url) {
-  const regex = /https:\/\/www\.flipkart\.com\/([^\/]+)/;
-  const match = url.match(regex);
-  if (match) {
-    const brandPart = match[1].split('-')[0];  // Split by '-' and take the first part
-    console.log(brandPart);
-    return brandPart;
-  }
-  return null;
-}
-
-async function resolveAmazonUrl(url) {
-  try {
-    const response = await axios.get(url, { maxRedirects: 5 });
-    const resolvedUrl = response.request.res.responseUrl;
-
-    // Extract the ASIN from the resolved URL using a more comprehensive regex
-    const regex = /(?:dp|gp\/product|exec\/obidos\/asin|product)\/([A-Z0-9]{10})|(?:asin|pd_rd_i)=([A-Z0-9]{10})/i;
-    const match = resolvedUrl.match(regex);
-    let asin;
-    if (match) {
-      asin = match[1] || match[2]; // Match the first or second capturing group
+@@ -51,7 +52,7 @@ async function resolveShortenedUrl(url) {
     } else {
       throw new Error('ASIN not found in the resolved URL');
     }
 
+    
     // Make a request to the external API
     const apiResponse = await axios.get(`https://real-time-amazon-data.p.rapidapi.com/product-details?asin=${asin}&country=IN`, {
       headers: {
-        'x-rapidapi-key': 'bc4551ab84msh6733c61fc21c591p1d72c2jsnad99d9c3dd43',
-        'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com'
+@@ -60,12 +61,21 @@ async function resolveShortenedUrl(url) {
       }
     });
 
+    // Return the data to the client
+    if (!apiResponse.data.data || !apiResponse.data.data.product_details) {
+      throw new Error('Invalid response from external API');
     // Check and return the Brand from the correct location
     const data = apiResponse.data.data;
     let brand;
@@ -117,14 +65,14 @@ async function resolveAmazonUrl(url) {
     } else {
       throw new Error('Brand not found in the response');
     }
-    console.log(brand);
-    return { brand };
+    return apiResponse.data.data.product_details.Brand;
+
+    return brand;
   } catch (error) {
     console.error('Error fetching product details:', error.message);
     throw error;
   }
 }
-
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });
