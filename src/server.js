@@ -49,14 +49,18 @@ app.get('/resolveShortenedUrl', async (req, res) => {
 });
 
 async function resolveFlipkartUrl(shortenedUrl) {
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath,
-    headless: chromium.headless,
-  });
-  const page = await browser.newPage();
+  let browser;
+  let page;
 
   try {
+    browser = await puppeteer.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
+    });
+
+    page = await browser.newPage();
+
     // Navigate to the shortened URL
     await page.goto(shortenedUrl, { waitUntil: 'networkidle0' });
 
@@ -67,8 +71,12 @@ async function resolveFlipkartUrl(shortenedUrl) {
     const brandName = extractBrandName(finalUrl);
 
     return { brandName };
+  } catch (error) {
+    console.error('Error resolving Flipkart URL:', error);
+    throw error;
   } finally {
-    await browser.close();
+    if (page) await page.close();
+    if (browser) await browser.close();
   }
 }
 
@@ -101,8 +109,8 @@ async function resolveAmazonUrl(url) {
     // Make a request to the external API
     const apiResponse = await axios.get(`https://real-time-amazon-data.p.rapidapi.com/product-details?asin=${asin}&country=IN`, {
       headers: {
-        'x-rapidapi-key': 'bc4551ab84msh6733c61fc21c591p1d72c2jsnad99d9c3dd43',
-        'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com'
+        'X-RapidAPI-Key': 'your-rapidapi-key',  // Replace with your actual RapidAPI key
+        'X-RapidAPI-Host': 'real-time-amazon-data.p.rapidapi.com'
       }
     });
 
