@@ -49,18 +49,14 @@ app.get('/resolveShortenedUrl', async (req, res) => {
 });
 
 async function resolveFlipkartUrl(shortenedUrl) {
-  let browser;
-  let page;
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    executablePath: await chromium.executablePath,
+    headless: chromium.headless,
+  });
+  const page = await browser.newPage();
 
   try {
-    browser = await puppeteer.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
-    });
-
-    page = await browser.newPage();
-
     // Navigate to the shortened URL
     await page.goto(shortenedUrl, { waitUntil: 'networkidle0' });
 
@@ -71,12 +67,8 @@ async function resolveFlipkartUrl(shortenedUrl) {
     const brandName = extractBrandName(finalUrl);
 
     return { brandName };
-  } catch (error) {
-    console.error('Error resolving Flipkart URL:', error);
-    throw error;
   } finally {
-    if (page) await page.close();
-    if (browser) await browser.close();
+    await browser.close();
   }
 }
 
