@@ -2,7 +2,10 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors'); // Import cors module
 const app = express();
+const PORT = 3000;
 const PORT = 10000;
+
+
 // Enable CORS for all routes
 app.use(cors());
 app.get('/resolveShortenedUrl', async (req, res) => {
@@ -24,12 +27,9 @@ app.get('/resolveShortenedUrl', async (req, res) => {
     // Make a request to the external API
     const apiResponse = await axios.get(`https://real-time-amazon-data.p.rapidapi.com/product-details?asin=${asin}&country=IN`, {
       headers: {
-    'x-rapidapi-key': 'bc4551ab84msh6733c61fc21c591p1d72c2jsnad99d9c3dd43',
-    'x-rapidapi-host': 'real-time-amazon-data.p.rapidapi.com'
-  }
         'X-RapidAPI-Key': 'bc4551ab84msh6733c61fc21c591p1d72c2jsnad99d9c3dd43',
         'X-RapidAPI-Host': 'real-time-amazon-data.p.rapidapi.com'
-      }
+       }
     });
     // Return the data to the client
     res.json(apiResponse.data.data.product_details.Brand);
