@@ -6,7 +6,7 @@ const puppeteer = require('puppeteer-core');
 const chromium = require('chrome-aws-lambda');
 
 const app = express();
-const PORT = process.env.PORT || 10000;  // Use process.env.PORT for compatibility with Render
+const PORT = 10000;
 
 // Enable CORS for all routes
 app.use(cors());
@@ -19,6 +19,8 @@ app.get('/resolveShortenedUrl', async (req, res) => {
     if (!url) {
       return res.status(400).json({ error: 'URL parameter is required' });
     }
+
+    console.log(`Received URL to resolve: ${url}`);
 
     // Check DNS resolution
     dns.lookup(new URL(url).hostname, async (dnsErr) => {
@@ -35,7 +37,8 @@ app.get('/resolveShortenedUrl', async (req, res) => {
         } else {
           resolvedData = await resolveAmazonUrl(url);
         }
-        
+
+        console.log(`Resolved data: ${JSON.stringify(resolvedData)}`);
         res.json(resolvedData);
       } catch (err) {
         console.error('Error:', err.message);
@@ -49,19 +52,25 @@ app.get('/resolveShortenedUrl', async (req, res) => {
 });
 
 async function resolveFlipkartUrl(shortenedUrl) {
+  console.log(`Resolving Flipkart URL: ${shortenedUrl}`);
+
   const browser = await puppeteer.launch({
-    args: chromium.args,
+    args: [...chromium.args],
+    defaultViewport: chromium.defaultViewport,
     executablePath: await chromium.executablePath,
     headless: chromium.headless,
   });
+
   const page = await browser.newPage();
 
   try {
     // Navigate to the shortened URL
-    await page.goto(shortenedUrl, { waitUntil: 'networkidle0' });
+    await page.goto(shortenedUrl);
 
     // Extract the final URL after all redirects
     const finalUrl = page.url();
+
+    console.log(`Final URL after redirects: ${finalUrl}`);
 
     // Extract brand name
     const brandName = extractBrandName(finalUrl);
@@ -76,14 +85,16 @@ function extractBrandName(url) {
   const regex = /https:\/\/www\.flipkart\.com\/([^\/]+)/;
   const match = url.match(regex);
   if (match) {
-    const brandPart = match[1].split('-')[0];  // Split by '-' and take the first part
-    console.log(brandPart);
+    const brandPart = match[1].split('-')[0]; // Split by '-' and take the first part
+    console.log(`Extracted brand name: ${brandPart}`);
     return brandPart;
   }
   return null;
 }
 
 async function resolveAmazonUrl(url) {
+  console.log(`Resolving Amazon URL: ${url}`);
+
   try {
     const response = await axios.get(url, { maxRedirects: 5 });
     const resolvedUrl = response.request.res.responseUrl;
@@ -97,6 +108,8 @@ async function resolveAmazonUrl(url) {
     } else {
       throw new Error('ASIN not found in the resolved URL');
     }
+
+    console.log(`Extracted ASIN: ${asin}`);
 
     // Make a request to the external API
     const apiResponse = await axios.get(`https://real-time-amazon-data.p.rapidapi.com/product-details?asin=${asin}&country=IN`, {
@@ -117,7 +130,8 @@ async function resolveAmazonUrl(url) {
     } else {
       throw new Error('Brand not found in the response');
     }
-    console.log(brand);
+
+    console.log(`Resolved brand: ${brand}`);
     return { brand };
   } catch (error) {
     console.error('Error fetching product details:', error.message);
