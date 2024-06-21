@@ -11,6 +11,8 @@
     "cheerio": "^1.0.0-rc.12",
     "body-parser": "^1.20.2",
     "cors": ">=2.8.5",
+    "puppeteer-core": "^22.11.0",
+    "chrome-aws-lambda": "^10.1.0",
     "express": ">=4.19.2"
   }
 }
