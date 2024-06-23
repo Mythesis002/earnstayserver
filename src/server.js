@@ -80,10 +80,9 @@ async function resolveFlipkartUrl(Url) {
 }
 
 function extractFlipkartBrandName(url) {
-  // Updated regex to handle more URL formats
-  const regex = /flipkart\.com\/(?:([^-\/]+)(?:\/|-)|dl\/([^\/]+))/i;
+  const regex = /flipkart\.com\/(?:dl\/)?([^\/\-]+)(?:\/|-|$)/i;
   const match = url.match(regex);
-  if (match) {
+  if (match && match[1]) {
     const brandPart = match[1].split('-')[0];  // Split by '-' and take the first part
     return decodeURIComponent(brandPart).replace(/\+/g, ' '); // Decode URL-encoded characters
   }
