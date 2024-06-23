@@ -49,30 +49,31 @@ app.get('/resolveShortenedUrl', async (req, res) => {
   }
 });
 
-async function resolveFlipkartUrl(Url) {
-  try {
-    const response = await axios.get(Url, {
-      maxRedirects: 5,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'max-age=0',
-        'sec-fetch-site': 'none',
-        'sec-fetch-mode': 'navigate',
-        'sec-fetch-user': '?1',
-        'sec-fetch-dest': 'document',
-      },
-      timeout: 15000, // Increased timeout
-    });
+const fetch = require('node-fetch');
 
-    const finalUrl = response.request.res.responseUrl;
+async function resolveFlipkartUrl(Url) {
+  const options = {
+    timeout: 30000, // 30 seconds
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+      'Accept-Language': 'en-US,en;q=0.9',
+      'Accept-Encoding': 'gzip, deflate, br',
+      'Connection': 'keep-alive',
+      'Upgrade-Insecure-Requests': '1',
+      'Cache-Control': 'max-age=0',
+      'sec-fetch-site': 'none',
+      'sec-fetch-mode': 'navigate',
+      'sec-fetch-user': '?1',
+      'sec-fetch-dest': 'document',
+    }
+  };
+
+  try {
+    const response = await fetch(Url, options);
+    const finalUrl = response.url;
     console.log('Final Flipkart URL:', finalUrl);
 
-    // Extract brand name
     const brand = extractFlipkartBrandName(finalUrl);
     console.log('Extracted Flipkart brand:', brand);
 
@@ -85,11 +86,7 @@ async function resolveFlipkartUrl(Url) {
     console.error('Flipkart Error:', error.message);
     if (error.response) {
       console.error('Flipkart Error status code:', error.response.status);
-      console.error('Flipkart Error response data:', error.response.data);
-    } else if (error.request) {
-      console.error('Flipkart No response received:', error.request);
-    } else {
-      console.error('Flipkart Error in request setup:', error.message);
+      console.error('Flipkart Error response body:', await error.response.text());
     }
     throw error;
   }
