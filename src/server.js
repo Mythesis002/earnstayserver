@@ -53,7 +53,7 @@ const fetch = require('node-fetch');
 
 async function resolveFlipkartUrl(Url) {
   const options = {
-    timeout: 30000, // 30 seconds
+    redirect: 'follow',
     headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
@@ -62,10 +62,6 @@ async function resolveFlipkartUrl(Url) {
       'Connection': 'keep-alive',
       'Upgrade-Insecure-Requests': '1',
       'Cache-Control': 'max-age=0',
-      'sec-fetch-site': 'none',
-      'sec-fetch-mode': 'navigate',
-      'sec-fetch-user': '?1',
-      'sec-fetch-dest': 'document',
     }
   };
 
@@ -84,17 +80,12 @@ async function resolveFlipkartUrl(Url) {
     return { brand };
   } catch (error) {
     console.error('Flipkart Error:', error.message);
-    if (error.response) {
-      console.error('Flipkart Error status code:', error.response.status);
-      console.error('Flipkart Error response body:', await error.response.text());
-    }
     throw error;
   }
 }
 
 function extractFlipkartBrandName(url) {
-  // Updated regex to handle more URL formats
-  const regex = /flipkart\.com\/(?:([^-\/]+)(?:\/|-)|dl\/([^\/]+))/i;
+  const regex = /(?:https?:\/\/)?(?:www\.)?flipkart\.com\/([^\/\?]+)/i;
   const match = url.match(regex);
   if (match) {
     const brandPart = match[1].split('-')[0];  // Split by '-' and take the first part
