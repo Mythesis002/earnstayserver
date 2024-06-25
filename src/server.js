@@ -105,7 +105,7 @@ async function resolveAmazonUrl(url) {
     // Make a request to the external API
     const apiResponse = await axios.get(`https://real-time-amazon-data.p.rapidapi.com/product-details?asin=${asin}&country=IN`, {
       headers: {
-        'X-RapidAPI-Key': 'bc4551ab84msh6733c61fc21c591p1d72c2jsnad99d9c3dd43', // Replace with your actual key
+        'X-RapidAPI-Key': 'c4149d7f42msh169b1ac1d7c079ep17cebfjsn882b5a92dacd', // Replace with your actual key
         'X-RapidAPI-Host': 'real-time-amazon-data.p.rapidapi.com'
       }
     });
