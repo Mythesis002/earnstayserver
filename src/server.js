@@ -112,11 +112,11 @@ async function resolveAmazonUrl(url) {
     // Check and return the Brand from the correct location
     const data = apiResponse.data.data;
     let brand;
-    if (data.product_photos && data.product_photos.length > 0) {
+    if (data.product_photos && data.product_photos[0]) {
       brand = data.product_photos[0];
-    } else if (data.product_photos && data.product_photos.length > 1) {
-      brand = data.product_photos[1];
-      
+    } else if (data.product_photos && data.product_photos[0]) {
+      brand = data.product_photos[0];
+      console.log(brand);
     } else {
       throw new Error('Brand not found in the response');
     }
